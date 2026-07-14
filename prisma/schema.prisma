@@ -1,0 +1,284 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         String   @default("player")
+  isBlocked    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  student Student?
+  sessions Session[]
+  adminAuditLogs AdminAuditLog[]
+
+  @@index([role])
+  @@index([isBlocked])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Student {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  studyProgramId String
+  displayName    String
+  level          Int      @default(1)
+  experience     Int      @default(0)
+  knowledge      Int      @default(10)
+  energy         Int      @default(100)
+  maximumEnergy  Int      @default(100)
+  lastEnergyUpdateAt DateTime @default(now())
+  stress         Int      @default(0)
+  reputation     Int      @default(0)
+  money          Int      @default(100)
+  semester       Int      @default(1)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  studyProgram StudyProgram  @relation(fields: [studyProgramId], references: [id])
+  tasks        StudentTask[]
+  rewardLogs   StudentRewardLog[]
+  inventoryItems StudentInventoryItem[]
+  equippedItems  StudentEquipment[]
+  createdCommissions StudentCommission[] @relation("CommissionCreator")
+  acceptedCommissions StudentCommission[] @relation("CommissionContractor")
+  examAttempts StudentExamAttempt[]
+
+  @@index([studyProgramId])
+  @@index([level])
+  @@index([knowledge])
+  @@index([reputation])
+}
+
+model StudyProgram {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String   @unique
+  description String
+  bonusLabel  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  students Student[]
+}
+
+model UniversityTask {
+  id               String   @id @default(cuid())
+  slug             String   @unique
+  title            String
+  description      String
+  category         String   @default("Dziekanat")
+  minimumLevel     Int      @default(1)
+  energyCost       Int
+  durationSeconds  Int
+  experienceReward Int
+  moneyReward      Int
+  reputationReward Int
+  knowledgeReward  Int      @default(0)
+  stressChange     Int      @default(0)
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  studentTasks StudentTask[]
+
+  @@index([minimumLevel])
+  @@index([isActive])
+}
+
+model StudentTask {
+  id               String            @id @default(cuid())
+  studentId        String
+  universityTaskId String
+  status           String            @default("in_progress")
+  activeSlot       String?
+  startedAt        DateTime          @default(now())
+  finishesAt       DateTime
+  completedAt      DateTime?
+  experienceReward Int
+  moneyReward      Int
+  reputationReward Int
+  knowledgeReward  Int               @default(0)
+  stressChange     Int               @default(0)
+  energyCost       Int
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  student        Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  universityTask UniversityTask @relation(fields: [universityTaskId], references: [id])
+
+  @@index([studentId, status])
+  @@index([status, studentId])
+  @@index([universityTaskId])
+  @@unique([studentId, activeSlot])
+}
+
+model StudentRewardLog {
+  id               String   @id @default(cuid())
+  studentId        String
+  studentTaskId    String?
+  title            String
+  description      String
+  levelBefore      Int
+  levelAfter       Int
+  experienceChange Int
+  moneyChange      Int
+  reputationChange Int
+  knowledgeChange  Int
+  stressChange     Int
+  energyChange     Int      @default(0)
+  createdAt        DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, createdAt])
+  @@index([studentTaskId])
+}
+
+model ItemDefinition {
+  id                 String   @id @default(cuid())
+  slug               String   @unique
+  name               String
+  description        String
+  category           String
+  slot               String?
+  rarity             String
+  knowledgeBonus     Int      @default(0)
+  maximumEnergyBonus Int      @default(0)
+  energyRegenBonus   Int      @default(0)
+  reputationBonus    Int      @default(0)
+  moneyRewardBonus   Int      @default(0)
+  taskTimeBonus      Int      @default(0)
+  taskCategory       String?
+  energyRestore      Int      @default(0)
+  stressReduce       Int      @default(0)
+  isConsumable       Boolean  @default(false)
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  inventoryItems StudentInventoryItem[]
+
+  @@index([category])
+  @@index([slot])
+  @@index([isActive])
+}
+
+model StudentInventoryItem {
+  id           String   @id @default(cuid())
+  studentId    String
+  itemId       String
+  quantity     Int      @default(1)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  student   Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  item      ItemDefinition @relation(fields: [itemId], references: [id])
+  equipment StudentEquipment?
+
+  @@unique([studentId, itemId])
+  @@index([studentId])
+  @@index([itemId])
+}
+
+model StudentEquipment {
+  id              String   @id @default(cuid())
+  studentId       String
+  inventoryItemId String   @unique
+  slot            String
+  equippedAt      DateTime @default(now())
+
+  student       Student              @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  inventoryItem StudentInventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, slot])
+  @@index([studentId])
+}
+
+model StudentCommission {
+  id             String    @id @default(cuid())
+  creatorId      String
+  contractorId   String?
+  title          String
+  description    String
+  category       String
+  minimumLevel   Int
+  deadlineAt     DateTime
+  moneyReward    Int
+  status         String    @default("open")
+  acceptedAt     DateTime?
+  submittedAt    DateTime?
+  approvedAt     DateTime?
+  cancelledAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  creator    Student  @relation("CommissionCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  contractor Student? @relation("CommissionContractor", fields: [contractorId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([creatorId, status])
+  @@index([contractorId, status])
+  @@index([status, contractorId])
+  @@index([deadlineAt])
+}
+
+model StudentExamAttempt {
+  id                  String   @id @default(cuid())
+  studentId           String
+  semester            Int
+  status              String
+  score               Int
+  requiredScore       Int
+  narrative           String
+  knowledgeAtAttempt  Int
+  levelAtAttempt      Int
+  stressAtAttempt     Int
+  nextAttemptAllowedAt DateTime?
+  createdAt           DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, semester])
+  @@index([studentId, status])
+  @@index([nextAttemptAllowedAt])
+}
+
+model AdminAuditLog {
+  id            String   @id @default(cuid())
+  adminUserId   String
+  action        String
+  targetType    String
+  targetId      String?
+  details       String
+  economyChange Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  adminUser User @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+
+  @@index([adminUserId, createdAt])
+  @@index([action])
+  @@index([targetType])
+  @@index([economyChange])
+}
