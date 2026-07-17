@@ -8,7 +8,7 @@ type FeatureCardProps = {
 
 export function FeatureCard({ icon: Icon, title, description }: FeatureCardProps) {
   return (
-    <article className="rounded-lg border border-ink/10 bg-white/72 p-5 shadow-panel">
+    <article className="game-card p-5 transition hover:-translate-y-0.5">
       <div className="flex h-11 w-11 items-center justify-center rounded-md bg-accent/12 text-accent">
         <Icon className="h-5 w-5" aria-hidden="true" />
       </div>

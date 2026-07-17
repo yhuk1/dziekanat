@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Trophy } from "lucide-react";
+import Image from "next/image";
+import { Crown, Trophy } from "lucide-react";
 import { requireStudent } from "@/features/auth/session";
 import { getRanking } from "@/features/ranking/queries";
 import {
@@ -25,19 +26,29 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
   return (
     <div className="px-4 py-8 sm:px-6 lg:px-8">
       <section className="mx-auto max-w-7xl space-y-5">
-        <div className="rounded-lg border border-ink/10 bg-white/78 p-5 shadow-panel md:p-7">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="game-card-dark relative overflow-hidden p-5 md:p-7">
+          <Image
+            src="/images/ranking/ranking-background.webp"
+            alt=""
+            fill
+            priority
+            sizes="(min-width: 1280px) 1180px, 100vw"
+            className="object-cover object-[center_35%] md:object-center"
+            aria-hidden="true"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-ink/80 via-ink/58 to-ink/90 md:bg-gradient-to-r md:from-ink/88 md:via-ink/65 md:to-ink/30" />
+          <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-sm font-bold uppercase tracking-widest text-accent">Rankingi</p>
-              <h1 className="mt-2 text-3xl font-black text-ink sm:text-4xl">
+              <p className="text-sm font-bold uppercase tracking-widest text-amber-200">Rankingi</p>
+              <h1 className="mt-2 text-3xl font-black text-white sm:text-4xl">
                 Akademicka tablica chwaly
               </h1>
-              <p className="mt-3 max-w-3xl text-ink/70">
+              <p className="mt-3 max-w-3xl text-white/78">
                 Dane pochodza z bazy i pokazuja tylko publiczne informacje postaci. E-maile zostaja
                 w sekretariacie.
               </p>
             </div>
-            <div className="rounded-md bg-paper px-4 py-3 text-sm font-bold text-ink/70">
+            <div className="rounded-md border border-white/15 bg-white/12 px-4 py-3 text-sm font-bold text-white/82 backdrop-blur">
               Twoj ranking:{" "}
               {ranking.ownPosition ? `#${ranking.ownPosition.position}` : "brak danych"}
             </div>
@@ -51,8 +62,8 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
               href={`/ranking?type=${rankingType}`}
               className={
                 rankingType === type
-                  ? "rounded-md bg-accent px-4 py-2 text-sm font-black text-white"
-                  : "rounded-md bg-ink px-4 py-2 text-sm font-black text-white hover:bg-accent"
+                  ? "rounded-md bg-accent px-4 py-2 text-sm font-black text-white shadow-lg shadow-accent/20 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+                  : "rounded-md bg-ink px-4 py-2 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-accent focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
               }
             >
               {RANKING_LABELS[rankingType]}
@@ -60,7 +71,7 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
           ))}
         </nav>
 
-        <section className="overflow-hidden rounded-lg border border-ink/10 bg-white/78 shadow-panel">
+        <section className="game-card overflow-hidden">
           <div className="grid grid-cols-[64px_1.2fr_1fr_80px_80px_110px] gap-3 bg-ink px-4 py-3 text-sm font-black text-white max-md:hidden">
             <span>#</span>
             <span>Postac</span>
@@ -73,10 +84,14 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
             {ranking.entries.map((entry) => (
               <div
                 key={`${entry.studentId ?? entry.displayName}-${entry.position}`}
-                className="grid gap-3 px-4 py-4 md:grid-cols-[64px_1.2fr_1fr_80px_80px_110px] md:items-center"
+                className="grid gap-3 px-4 py-4 transition hover:bg-paper/70 md:grid-cols-[64px_1.2fr_1fr_80px_80px_110px] md:items-center"
               >
                 <div className="flex items-center gap-2 font-black text-accent">
-                  <Trophy className="h-4 w-4" aria-hidden="true" />
+                  {entry.position === 1 ? (
+                    <Crown className="h-5 w-5" aria-hidden="true" />
+                  ) : (
+                    <Trophy className="h-4 w-4" aria-hidden="true" />
+                  )}
                   {entry.position}
                 </div>
                 <div>
@@ -88,7 +103,7 @@ export default async function RankingPage({ searchParams }: RankingPageProps) {
                 <p className="font-bold text-ink/70">
                   {entry.semester ? `Sem. ${entry.semester}` : "-"}
                 </p>
-                <p className="rounded-md bg-paper px-3 py-2 text-sm font-black text-ink">
+                <p className="rounded-md border border-ink/10 bg-paper px-3 py-2 text-sm font-black text-ink">
                   {entry.value}
                 </p>
               </div>

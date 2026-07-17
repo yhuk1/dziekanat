@@ -27,8 +27,19 @@ export function TaskCountdown({ finishesAt }: TaskCountdownProps) {
   }, [target]);
 
   if (remaining <= 0) {
-    return <span className="font-black text-success">Gotowe do odbioru</span>;
+    return (
+      <span className="inline-flex rounded-md bg-success/10 px-3 py-1 font-black text-success">
+        Gotowe do odbioru
+      </span>
+    );
   }
 
-  return <span className="font-black text-accent">{formatRemaining(remaining)}</span>;
+  return (
+    <span
+      className="inline-flex min-w-24 justify-center rounded-md bg-ink px-3 py-1 font-mono font-black tabular-nums text-white"
+      aria-label={`Pozostalo ${formatRemaining(remaining)}`}
+    >
+      {formatRemaining(remaining)}
+    </span>
+  );
 }

@@ -4,6 +4,8 @@
 
 :root {
   color-scheme: light;
+  overflow-x: clip;
+  scrollbar-gutter: stable;
 }
 
 * {
@@ -13,9 +15,19 @@
 body {
   min-height: 100vh;
   margin: 0;
+  overflow-x: clip;
   background:
-    radial-gradient(circle at top left, rgba(47, 125, 126, 0.18), transparent 28rem),
-    linear-gradient(135deg, #f7f3ea 0%, #e9dfcb 48%, #f5efe3 100%);
+    linear-gradient(rgba(24, 32, 47, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(24, 32, 47, 0.035) 1px, transparent 1px),
+    radial-gradient(circle at top left, rgba(47, 125, 126, 0.22), transparent 26rem),
+    radial-gradient(circle at 80% 10%, rgba(198, 95, 58, 0.14), transparent 22rem),
+    linear-gradient(135deg, #f7f3ea 0%, #e7ddc8 48%, #f5efe3 100%);
+  background-size:
+    32px 32px,
+    32px 32px,
+    auto,
+    auto,
+    auto;
   color: #18202f;
 }
 
@@ -27,4 +39,57 @@ a {
 ::selection {
   background: #2f7d7e;
   color: #fffaf0;
+}
+
+:focus-visible {
+  outline: 3px solid #2f7d7e;
+  outline-offset: 3px;
+}
+
+@layer components {
+  .game-card {
+    @apply rounded-lg border border-ink/10 bg-white/80 shadow-panel backdrop-blur;
+  }
+
+  .game-card-dark {
+    @apply rounded-lg border border-white/10 bg-ink text-white shadow-panel;
+  }
+
+  .game-chip {
+    @apply inline-flex items-center gap-2 rounded-md border border-ink/10 bg-paper px-3 py-1.5 text-xs font-black uppercase tracking-widest text-ink/70;
+  }
+
+  .game-chip-accent {
+    @apply inline-flex items-center gap-2 rounded-md border border-accent/25 bg-accent/10 px-3 py-1.5 text-xs font-black uppercase tracking-widest text-accent;
+  }
+
+  .game-input {
+    @apply mt-2 w-full rounded-md border border-ink/15 bg-white px-4 py-3 text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/30;
+  }
+
+  .dashboard-game-background {
+    position: relative;
+    min-height: 100vh;
+    overflow-x: clip;
+    background-color: #0b1520;
+    background-image:
+      linear-gradient(rgba(7, 15, 24, 0.7), rgba(10, 24, 34, 0.76)),
+      url("/images/backgrounds/dashboard-background.webp");
+    background-position: center top;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+
+  .dashboard-game-background .game-card {
+    border-color: rgba(19, 78, 74, 0.2);
+    background-color: rgba(255, 255, 255, 0.88);
+    box-shadow: 0 25px 50px -12px rgba(24, 32, 47, 0.28);
+  }
+
+  .dashboard-game-background .game-card-dark {
+    border-color: rgba(94, 234, 212, 0.15);
+    background-color: rgba(24, 32, 47, 0.88);
+    box-shadow: 0 25px 50px -12px rgba(24, 32, 47, 0.35);
+    backdrop-filter: blur(8px);
+  }
 }

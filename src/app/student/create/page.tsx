@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
+import Image from "next/image";
 import { FormError } from "@/components/ui/form-error";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { requireUser } from "@/features/auth/session";
 import { createStudentAction } from "@/features/players/actions";
+import { getStudyProgramImage } from "@/lib/game-assets";
 import { prisma } from "@/lib/prisma";
 
 type CreateStudentPageProps = {
@@ -26,7 +28,7 @@ export default async function CreateStudentPage({ searchParams }: CreateStudentP
   return (
     <div className="px-4 py-8 sm:px-6 lg:px-8">
       <section className="mx-auto grid max-w-6xl gap-5 lg:grid-cols-[0.85fr_1.15fr]">
-        <div className="rounded-lg border border-ink/10 bg-ink p-6 text-white shadow-panel">
+        <div className="game-card-dark p-6">
           <p className="text-sm font-bold uppercase tracking-widest text-white/50">
             Immatrykulacja
           </p>
@@ -43,10 +45,7 @@ export default async function CreateStudentPage({ searchParams }: CreateStudentP
           </div>
         </div>
 
-        <form
-          action={createStudentAction}
-          className="rounded-lg border border-ink/10 bg-white/78 p-6 shadow-panel"
-        >
+        <form action={createStudentAction} className="game-card p-6">
           <FormError message={params.error} />
 
           <label className="mt-4 block">
@@ -56,7 +55,7 @@ export default async function CreateStudentPage({ searchParams }: CreateStudentP
               name="displayName"
               minLength={2}
               maxLength={40}
-              className="mt-2 w-full rounded-md border border-ink/15 bg-white px-4 py-3 text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+              className="game-input"
               placeholder="Np. Ada od Poprawek"
             />
           </label>
@@ -74,9 +73,22 @@ export default async function CreateStudentPage({ searchParams }: CreateStudentP
                     type="radio"
                     name="studyProgramId"
                     value={program.id}
-                    className="sr-only"
+                    className="peer sr-only"
                   />
-                  <span className="block text-lg font-black text-ink">{program.name}</span>
+                  {getStudyProgramImage(program.slug) ? (
+                    <span className="relative mb-4 block aspect-[4/5] overflow-hidden rounded-md bg-white shadow-sm">
+                      <Image
+                        src={getStudyProgramImage(program.slug)}
+                        alt={`Ilustracja kierunku ${program.name}`}
+                        fill
+                        sizes="(min-width: 1024px) 260px, (min-width: 640px) 45vw, 100vw"
+                        className="object-cover object-top"
+                      />
+                    </span>
+                  ) : null}
+                  <span className="block text-lg font-black text-ink peer-focus-visible:outline peer-focus-visible:outline-3 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-accent">
+                    {program.name}
+                  </span>
                   <span className="mt-2 block text-sm leading-6 text-ink/65">
                     {program.description}
                   </span>

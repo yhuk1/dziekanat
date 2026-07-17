@@ -24,7 +24,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <div className="px-4 py-10 sm:px-6 lg:px-8">
-      <section className="mx-auto max-w-xl rounded-lg border border-ink/10 bg-white/78 p-6 shadow-panel">
+      <section className="game-card mx-auto max-w-xl p-6">
         <p className="text-sm font-bold uppercase tracking-widest text-accent">Logowanie</p>
         <h1 className="mt-2 text-3xl font-black text-ink">Wroc do indeksu</h1>
         <p className="mt-3 text-ink/70">
@@ -36,13 +36,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           <FormError message={params.error} />
           <label className="block">
             <span className="text-sm font-bold text-ink/70">E-mail</span>
-            <input
-              required
-              name="email"
-              type="email"
-              autoComplete="email"
-              className="mt-2 w-full rounded-md border border-ink/15 bg-white px-4 py-3 text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
-            />
+            <input required name="email" type="email" autoComplete="email" className="game-input" />
           </label>
           <label className="block">
             <span className="text-sm font-bold text-ink/70">Haslo</span>
@@ -51,7 +45,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               name="password"
               type="password"
               autoComplete="current-password"
-              className="mt-2 w-full rounded-md border border-ink/15 bg-white px-4 py-3 text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+              className="game-input"
             />
           </label>
           <SubmitButton pendingLabel="Logowanie...">Zaloguj sie</SubmitButton>

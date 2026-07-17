@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { GraduationCap, ScrollText } from "lucide-react";
 import { StatusMessage } from "@/components/ui/status-message";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -49,19 +50,38 @@ export default async function ExamPage({ searchParams }: ExamPageProps) {
   };
   const projectedScore = calculateExamScore(examStudent, equipmentBonuses);
   const attemptCheck = canAttemptExam(examStudent, completedTasks, lastAttempt, new Date());
+  const latestAttempt = attempts[0];
+  const latestAttemptImage =
+    latestAttempt?.status === EXAM_STATUS.passed
+      ? "/images/exams/exam-success.webp"
+      : latestAttempt?.status === EXAM_STATUS.failed
+        ? "/images/exams/exam-failure.webp"
+        : null;
 
   return (
     <div className="px-4 py-8 sm:px-6 lg:px-8">
       <section className="mx-auto max-w-7xl space-y-5">
-        <div className="rounded-lg border border-ink/10 bg-white/78 p-5 shadow-panel md:p-7">
-          <p className="text-sm font-bold uppercase tracking-widest text-accent">Egzamin</p>
-          <h1 className="mt-2 text-3xl font-black text-ink sm:text-4xl">
-            Egzamin konczacy semestr {student.semester}
-          </h1>
-          <p className="mt-3 max-w-3xl text-ink/70">
-            Wynik liczy serwer z wiedzy, poziomu, stresu, bonusu kierunku i aktywnego ekwipunku.
-            Klient moze najwyzej nerwowo odswiezyc strone.
-          </p>
+        <div className="game-card-dark relative overflow-hidden p-5 md:p-7">
+          <Image
+            src="/images/exams/exam-boss.webp"
+            alt=""
+            fill
+            priority
+            sizes="(min-width: 1280px) 1180px, 100vw"
+            className="object-cover object-[center_30%] md:object-[center_42%]"
+            aria-hidden="true"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-ink/82 via-ink/64 to-ink/90 md:bg-gradient-to-r md:from-ink/90 md:via-ink/70 md:to-ink/30" />
+          <div className="relative z-10 min-h-[300px] content-end">
+            <p className="text-sm font-bold uppercase tracking-widest text-amber-200">Egzamin</p>
+            <h1 className="mt-2 text-3xl font-black text-white sm:text-4xl">
+              Egzamin konczacy semestr {student.semester}
+            </h1>
+            <p className="mt-3 max-w-3xl text-white/78">
+              Wynik liczy serwer z wiedzy, poziomu, stresu, bonusu kierunku i aktywnego ekwipunku.
+              Klient moze najwyzej nerwowo odswiezyc strone.
+            </p>
+          </div>
         </div>
 
         <StatusMessage error={params.error} success={params.success} />
@@ -114,17 +134,33 @@ export default async function ExamPage({ searchParams }: ExamPageProps) {
               <ScrollText className="h-5 w-5 text-accent" aria-hidden="true" />
               <h2 className="text-2xl font-black text-ink">Ostatni przebieg</h2>
             </div>
-            {attempts[0] ? (
+            {latestAttempt ? (
               <div className="mt-4 rounded-md bg-paper p-4">
+                {latestAttemptImage ? (
+                  <div className="relative mb-4 aspect-[3/2] overflow-hidden rounded-md border border-ink/10 bg-white">
+                    <Image
+                      src={latestAttemptImage}
+                      alt={
+                        latestAttempt.status === EXAM_STATUS.passed
+                          ? "Ilustracja zdanego egzaminu"
+                          : "Ilustracja nieudanego podejscia do egzaminu"
+                      }
+                      fill
+                      sizes="(min-width: 1024px) 620px, 100vw"
+                      className="object-cover object-[center_38%] md:object-center"
+                    />
+                    <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-ink/45 to-transparent" />
+                  </div>
+                ) : null}
                 <p className="font-black text-ink">
-                  Semestr {attempts[0].semester}:{" "}
-                  {attempts[0].status === EXAM_STATUS.passed ? "zaliczone" : "niezaliczone"}
+                  Semestr {latestAttempt.semester}:{" "}
+                  {latestAttempt.status === EXAM_STATUS.passed ? "zaliczone" : "niezaliczone"}
                 </p>
                 <p className="mt-1 text-sm font-bold text-ink/55">
-                  Wynik {attempts[0].score}/{attempts[0].requiredScore}
+                  Wynik {latestAttempt.score}/{latestAttempt.requiredScore}
                 </p>
                 <pre className="mt-3 whitespace-pre-wrap font-sans text-sm leading-7 text-ink/70">
-                  {attempts[0].narrative}
+                  {latestAttempt.narrative}
                 </pre>
               </div>
             ) : (
