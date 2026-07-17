@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Prisma } from "@prisma/client";
 import { requireStudent } from "@/features/auth/session";
+import { ITEM_SOURCE, pickTaskItemDrop } from "@/features/inventory/rules";
+import { grantInventoryItem } from "@/features/inventory/server";
 import { getStudentEquipmentBonuses, syncStudentEnergy } from "@/features/players/server";
 import { prisma } from "@/lib/prisma";
 import {
@@ -109,6 +111,7 @@ export async function startUniversityTaskAction(formData: FormData) {
 export async function claimUniversityTaskRewardAction(formData: FormData) {
   const { student } = await requireStudent();
   const studentTaskId = String(formData.get("studentTaskId") ?? "");
+  let droppedItemName: string | null = null;
 
   if (!studentTaskId) {
     redirectWithMessage("error", "Nie znaleziono aktywnego zadania.");
@@ -119,6 +122,17 @@ export async function claimUniversityTaskRewardAction(formData: FormData) {
       where: {
         id: studentTaskId,
         studentId: student.id,
+      },
+      include: {
+        universityTask: {
+          include: {
+            itemDrops: {
+              where: { isActive: true },
+              include: { item: true },
+              orderBy: { createdAt: "asc" },
+            },
+          },
+        },
       },
     });
 
@@ -182,9 +196,30 @@ export async function claimUniversityTaskRewardAction(formData: FormData) {
         stressChange: studentTask.stressChange,
       },
     });
+
+    const itemDrop = pickTaskItemDrop(
+      studentTask.universityTask.itemDrops,
+      Math.floor(Math.random() * 10_000),
+    );
+
+    if (itemDrop) {
+      await grantInventoryItem(tx, {
+        studentId: student.id,
+        itemId: itemDrop.itemId,
+        source: ITEM_SOURCE.task,
+        message: `Zadanie: ${studentTask.universityTask.title}`,
+      });
+      droppedItemName = itemDrop.item?.name ?? "nowy przedmiot";
+    }
   });
 
   revalidatePath("/tasks");
   revalidatePath("/dashboard");
-  redirectWithMessage("success", "Nagroda odebrana. Indeks lekko sie usmiechnal.");
+  revalidatePath("/inventory");
+  redirectWithMessage(
+    "success",
+    droppedItemName
+      ? `Nagroda odebrana. Zdobyto przedmiot: ${droppedItemName}`
+      : "Nagroda odebrana. Indeks lekko sie usmiechnal.",
+  );
 }

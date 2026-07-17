@@ -31,7 +31,7 @@ Repozytorium wyszlo poza pierwsze MVP. Oprocz podstawowej petli konta, postaci i
 
 - regeneracja energii i system stresu,
 - bonusy kierunkow studiow,
-- przedmioty, ekwipunek i przedmioty jednorazowe,
+- przedmioty, ekwipunek, przedmioty jednorazowe, zestawy startowe, dropy zadan i sklep uczelniany,
 - zlecenia miedzy studentami z depozytem,
 - rankingi,
 - semestry i egzaminy,
@@ -201,6 +201,14 @@ Mozliwe efekty:
 - skrocenie czasu okreslonych aktywnosci.
 
 Przedmioty powinny byc dodane dopiero wtedy, gdy podstawowa petla zadan bedzie stabilna.
+
+Aktualny system przedmiotow ma trzy podstawowe zrodla:
+
+- zestaw startowy przy tworzeniu postaci, przyznawany tylko raz,
+- losowe nagrody z wybranych zadan uczelni, losowane po stronie serwera przy odbiorze nagrody,
+- sklep uczelniany za walute gry, bez prawdziwych platnosci.
+
+Historia zdobytych przedmiotow zapisuje zrodlo: zestaw startowy, zadanie, sklep, egzamin albo wydarzenie.
 
 ## Pozniejsze zadania miedzy studentami
 

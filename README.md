@@ -14,7 +14,7 @@ Projekt ma dzialajacy fundament gry oraz kilka rozszerzen po MVP. Zawiera:
 - panel gracza pod `/dashboard`,
 - zadania uczelni z energia, czasem, nagrodami i historia,
 - regeneracje energii, stres, bonusy kierunkow i dziennik nagrod,
-- ekwipunek i przedmioty jednorazowe,
+- ekwipunek, przedmioty jednorazowe, dropy z zadan i sklep uczelniany,
 - zlecenia miedzy studentami z depozytem,
 - rankingi,
 - egzaminy semestralne,
@@ -196,6 +196,7 @@ src/
     exam/
     inventory/
     ranking/
+    shop/
     tasks/
   components/
     layout/
@@ -209,6 +210,7 @@ src/
     inventory/
     players/
     ranking/
+    shop/
     study-programs/
     tasks/
   lib/

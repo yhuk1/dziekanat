@@ -38,22 +38,23 @@ model Session {
 }
 
 model Student {
-  id                 String   @id @default(cuid())
-  userId             String   @unique
-  studyProgramId     String
-  displayName        String
-  level              Int      @default(1)
-  experience         Int      @default(0)
-  knowledge          Int      @default(10)
-  energy             Int      @default(100)
-  maximumEnergy      Int      @default(100)
-  lastEnergyUpdateAt DateTime @default(now())
-  stress             Int      @default(0)
-  reputation         Int      @default(0)
-  money              Int      @default(100)
-  semester           Int      @default(1)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  studyProgramId      String
+  displayName         String
+  level               Int      @default(1)
+  experience          Int      @default(0)
+  knowledge           Int      @default(10)
+  energy              Int      @default(100)
+  maximumEnergy       Int      @default(100)
+  lastEnergyUpdateAt  DateTime @default(now())
+  stress              Int      @default(0)
+  reputation          Int      @default(0)
+  money               Int      @default(100)
+  semester            Int      @default(1)
+  starterItemsGranted Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   user                User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   studyProgram        StudyProgram           @relation(fields: [studyProgramId], references: [id])
@@ -61,6 +62,7 @@ model Student {
   rewardLogs          StudentRewardLog[]
   inventoryItems      StudentInventoryItem[]
   equippedItems       StudentEquipment[]
+  itemLogs            StudentItemLog[]
   createdCommissions  StudentCommission[]    @relation("CommissionCreator")
   acceptedCommissions StudentCommission[]    @relation("CommissionContractor")
   examAttempts        StudentExamAttempt[]
@@ -102,6 +104,7 @@ model UniversityTask {
   updatedAt        DateTime @updatedAt
 
   studentTasks StudentTask[]
+  itemDrops    TaskItemDrop[]
 
   @@index([minimumLevel])
   @@index([isActive])
@@ -179,10 +182,61 @@ model ItemDefinition {
   updatedAt          DateTime @updatedAt
 
   inventoryItems StudentInventoryItem[]
+  taskDrops      TaskItemDrop[]
+  shopOffers     ShopOffer[]
+  itemLogs       StudentItemLog[]
 
   @@index([category])
   @@index([slot])
   @@index([isActive])
+}
+
+model TaskItemDrop {
+  id                    String   @id @default(cuid())
+  universityTaskId      String
+  itemId                String
+  dropChanceBasisPoints Int
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  universityTask UniversityTask @relation(fields: [universityTaskId], references: [id], onDelete: Cascade)
+  item           ItemDefinition @relation(fields: [itemId], references: [id])
+
+  @@unique([universityTaskId, itemId])
+  @@index([universityTaskId, isActive])
+  @@index([itemId])
+}
+
+model ShopOffer {
+  id        String   @id @default(cuid())
+  itemId    String
+  price     Int
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  item ItemDefinition @relation(fields: [itemId], references: [id])
+
+  @@unique([itemId])
+  @@index([isActive])
+}
+
+model StudentItemLog {
+  id        String   @id @default(cuid())
+  studentId String
+  itemId    String?
+  source    String
+  quantity  Int      @default(1)
+  message   String
+  createdAt DateTime @default(now())
+
+  student Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  item    ItemDefinition? @relation(fields: [itemId], references: [id], onDelete: SetNull)
+
+  @@index([studentId, createdAt])
+  @@index([source])
+  @@index([itemId])
 }
 
 model StudentInventoryItem {

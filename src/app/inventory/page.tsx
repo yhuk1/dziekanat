@@ -23,7 +23,7 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
   const student = await syncStudentEnergy(prisma, sessionStudent.id);
   const params = await searchParams;
 
-  const [inventoryItems, equipment] = await Promise.all([
+  const [inventoryItems, equipment, itemLogs] = await Promise.all([
     prisma.studentInventoryItem.findMany({
       where: { studentId: student.id },
       include: { item: true, equipment: true },
@@ -37,6 +37,12 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
         },
       },
       orderBy: { slot: "asc" },
+    }),
+    prisma.studentItemLog.findMany({
+      where: { studentId: student.id },
+      include: { item: true },
+      orderBy: { createdAt: "desc" },
+      take: 8,
     }),
   ]);
 
@@ -224,6 +230,37 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
             );
           })}
         </section>
+
+        <section className="game-card p-5">
+          <div className="flex items-center gap-3">
+            <PackageCheck className="h-5 w-5 text-accent" aria-hidden="true" />
+            <h2 className="text-2xl font-black text-ink">Historia zdobytych przedmiotow</h2>
+          </div>
+          {itemLogs.length > 0 ? (
+            <div className="mt-4 divide-y divide-ink/10">
+              {itemLogs.map((log) => (
+                <div
+                  key={log.id}
+                  className="grid gap-2 py-3 md:grid-cols-[1fr_auto] md:items-center"
+                >
+                  <div>
+                    <p className="font-black text-ink">
+                      {log.item ? `Zdobyto przedmiot: ${log.item.name}` : log.message}
+                    </p>
+                    <p className="text-sm text-ink/65">
+                      Zrodlo: {getItemSourceLabel(log.source)}. {log.message}
+                    </p>
+                  </div>
+                  <p className="text-sm font-bold text-ink/55">
+                    {log.createdAt.toLocaleString("pl-PL")}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-4 text-ink/65">Jeszcze nic nie wpadlo do plecaka.</p>
+          )}
+        </section>
       </section>
     </div>
   );
@@ -231,4 +268,16 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
 
 function BonusPill({ label }: { label: string }) {
   return <span className="rounded-md bg-paper px-3 py-2 font-bold text-ink/70">{label}</span>;
+}
+
+function getItemSourceLabel(source: string) {
+  const labels: Record<string, string> = {
+    starter: "zestaw startowy",
+    task: "zadanie",
+    shop: "sklep",
+    exam: "egzamin",
+    event: "wydarzenie",
+  };
+
+  return labels[source] ?? source;
 }

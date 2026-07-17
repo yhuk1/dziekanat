@@ -280,6 +280,45 @@ const itemDefinitions = [
     knowledgeBonus: 1,
   },
   {
+    slug: "organizer-calendar",
+    name: "Kalendarz organizatora",
+    description: "Kolorowe zakladki, twarda okladka i zludzenie kontroli nad tygodniem.",
+    category: "Akcesorium",
+    slot: "accessory",
+    rarity: "Pospolity",
+    moneyRewardBonus: 1,
+  },
+  {
+    slug: "basic-law-code",
+    name: "Podstawowy kodeks",
+    description: "Ciezszy niz wyglada i gotowy wygrac kazda dyskusje samym upadkiem na stol.",
+    category: "Podrecznik",
+    slot: "notes",
+    rarity: "Pospolity",
+    reputationBonus: 1,
+  },
+  {
+    slug: "anatomy-textbook",
+    name: "Podrecznik anatomii",
+    description: "Tyle stron, ze sam w sobie powinien dawac punkty za aktywnosc fizyczna.",
+    category: "Podrecznik",
+    slot: "notes",
+    rarity: "Pospolity",
+    knowledgeBonus: 1,
+    energyRegenBonus: 5,
+  },
+  {
+    slug: "freshman-sketchbook",
+    name: "Szkicownik pierwszoroczniaka",
+    description: "Pierwsza strona idealna, druga juz zawiera miniaturke prowadzacego.",
+    category: "Notatki",
+    slot: "notes",
+    rarity: "Pospolity",
+    knowledgeBonus: 1,
+    taskTimeBonus: 2,
+    taskCategory: "Projekt",
+  },
+  {
     slug: "freshman-backpack",
     name: "Plecak pierwszoroczniaka",
     description: "Miesci laptop, zeszyt i rosnaca swiadomosc konsekwencji wyboru studiow.",
@@ -357,6 +396,48 @@ const itemDefinitions = [
     energyRestore: 28,
     stressReduce: 0,
     isConsumable: true,
+  },
+];
+
+const shopOffers = [
+  { itemSlug: "vending-machine-coffee", price: 10 },
+  { itemSlug: "pre-exam-energy-drink", price: 20 },
+  { itemSlug: "scientific-calculator", price: 80 },
+  { itemSlug: "freshman-backpack", price: 120 },
+  { itemSlug: "thermal-mug", price: 150 },
+  { itemSlug: "old-cousin-laptop", price: 500 },
+];
+
+const taskItemDrops = [
+  {
+    taskSlug: "survive-8am-lecture",
+    itemSlug: "vending-machine-coffee",
+    dropChanceBasisPoints: 2000,
+  },
+  {
+    taskSlug: "get-notes-from-older-year",
+    itemSlug: "older-year-notes",
+    dropChanceBasisPoints: 800,
+  },
+  {
+    taskSlug: "defeat-campus-printer",
+    itemSlug: "mystery-pendrive",
+    dropChanceBasisPoints: 800,
+  },
+  {
+    taskSlug: "last-minute-presentation",
+    itemSlug: "presentation-suit",
+    dropChanceBasisPoints: 300,
+  },
+  {
+    taskSlug: "help-conference",
+    itemSlug: "library-card",
+    dropChanceBasisPoints: 1000,
+  },
+  {
+    taskSlug: "help-conference",
+    itemSlug: "thermal-mug",
+    dropChanceBasisPoints: 800,
   },
 ];
 
@@ -461,37 +542,63 @@ async function main() {
     });
   }
 
-  const firstStudent = await prisma.student.findFirst({ select: { id: true } });
-
-  if (firstStudent) {
-    const starterSlugs = [
-      "old-cousin-laptop",
-      "freshman-backpack",
-      "older-year-notes",
-      "vending-machine-coffee",
-      "pre-exam-energy-drink",
-    ];
-    const starterItems = await prisma.itemDefinition.findMany({
-      where: { slug: { in: starterSlugs } },
+  for (const offer of shopOffers) {
+    const item = await prisma.itemDefinition.findUnique({
+      where: { slug: offer.itemSlug },
       select: { id: true },
     });
 
-    for (const item of starterItems) {
-      await prisma.studentInventoryItem.upsert({
+    if (item) {
+      await prisma.shopOffer.upsert({
+        where: { itemId: item.id },
+        create: {
+          itemId: item.id,
+          price: offer.price,
+        },
+        update: {
+          price: offer.price,
+          isActive: true,
+        },
+      });
+    }
+  }
+
+  for (const drop of taskItemDrops) {
+    const [task, item] = await Promise.all([
+      prisma.universityTask.findUnique({
+        where: { slug: drop.taskSlug },
+        select: { id: true },
+      }),
+      prisma.itemDefinition.findUnique({
+        where: { slug: drop.itemSlug },
+        select: { id: true },
+      }),
+    ]);
+
+    if (task && item) {
+      await prisma.taskItemDrop.upsert({
         where: {
-          studentId_itemId: {
-            studentId: firstStudent.id,
+          universityTaskId_itemId: {
+            universityTaskId: task.id,
             itemId: item.id,
           },
         },
         create: {
-          studentId: firstStudent.id,
+          universityTaskId: task.id,
           itemId: item.id,
+          dropChanceBasisPoints: drop.dropChanceBasisPoints,
         },
-        update: {},
+        update: {
+          dropChanceBasisPoints: drop.dropChanceBasisPoints,
+          isActive: true,
+        },
       });
     }
+  }
 
+  const firstStudent = await prisma.student.findFirst({ select: { id: true } });
+
+  if (firstStudent) {
     const commissionDeadline = new Date();
     commissionDeadline.setDate(commissionDeadline.getDate() + 7);
 

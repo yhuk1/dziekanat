@@ -181,7 +181,7 @@ Mozliwe rozszerzenia:
 - panel administracyjny do zarzadzania zadaniami,
 - moderacja tresci tworzonych przez graczy.
 
-Status: wiekszosc rozszerzen technicznych z tej listy zostala juz rozpoczeta lub wdrozona w prostej wersji: regeneracja energii, stres, przedmioty, bonusy kierunkow, semestry i egzaminy, ranking, zlecenia miedzy studentami oraz panel administracyjny. Nadal poza zakresem sa prawdziwe platnosci, czat, gildie, romanse oraz rozbudowana moderacja spolecznosci.
+Status: wiekszosc rozszerzen technicznych z tej listy zostala juz rozpoczeta lub wdrozona w prostej wersji: regeneracja energii, stres, przedmioty, zestawy startowe, dropy zadan, sklep uczelniany, bonusy kierunkow, semestry i egzaminy, ranking, zlecenia miedzy studentami oraz panel administracyjny. Nadal poza zakresem sa prawdziwe platnosci, czat, gildie, romanse oraz rozbudowana moderacja spolecznosci.
 
 ## Priorytet implementacji MVP
 

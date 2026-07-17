@@ -1,10 +1,14 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  canBuyShopOffer,
   aggregateEquipmentBonuses,
   applyConsumableEffect,
+  canGrantStarterItems,
   canEquipInventoryItem,
   canUseConsumable,
+  getStarterItemSlugs,
+  pickTaskItemDrop,
 } from "./rules.ts";
 
 const laptop = {
@@ -22,6 +26,28 @@ const laptop = {
 };
 
 describe("inventory rules", () => {
+  it("grants starter items only once and includes the study program item", () => {
+    assert.equal(canGrantStarterItems({ starterItemsGranted: false }).ok, true);
+    assert.equal(canGrantStarterItems({ starterItemsGranted: true }).ok, false);
+    assert.deepEqual(getStarterItemSlugs("computer-science"), [
+      "freshman-backpack",
+      "library-card",
+      "vending-machine-coffee",
+      "old-cousin-laptop",
+    ]);
+  });
+
+  it("picks an item from a task drop table using server-side roll", () => {
+    const drops = [
+      { itemId: "coffee", dropChanceBasisPoints: 2000, isActive: true },
+      { itemId: "notes", dropChanceBasisPoints: 800, isActive: true },
+    ];
+
+    assert.equal(pickTaskItemDrop(drops, 1999)?.itemId, "coffee");
+    assert.equal(pickTaskItemDrop(drops, 2000)?.itemId, "notes");
+    assert.equal(pickTaskItemDrop(drops, 2800), null);
+  });
+
   it("allows equipping an owned item into a free slot", () => {
     const result = canEquipInventoryItem(
       {
@@ -74,6 +100,54 @@ describe("inventory rules", () => {
         },
       },
       "student-1",
+    );
+
+    assert.equal(result.ok, false);
+    assert.match(result.message ?? "", /nie nalezy/i);
+  });
+
+  it("allows buying an active shop offer with enough money", () => {
+    const result = canBuyShopOffer(
+      { id: "student-1", money: 120 },
+      { price: 80, isActive: true, item: { isConsumable: false } },
+      null,
+    );
+
+    assert.equal(result.ok, true);
+  });
+
+  it("rejects shop purchase without enough money", () => {
+    const result = canBuyShopOffer(
+      { id: "student-1", money: 30 },
+      { price: 80, isActive: true, item: { isConsumable: false } },
+      null,
+    );
+
+    assert.equal(result.ok, false);
+    assert.match(result.message ?? "", /malo gotowki/i);
+  });
+
+  it("prevents a duplicate non-consumable purchase but allows consumables", () => {
+    const duplicateLaptop = canBuyShopOffer(
+      { id: "student-1", money: 1000 },
+      { price: 500, isActive: true, item: { isConsumable: false } },
+      { studentId: "student-1", quantity: 1 },
+    );
+    const secondCoffee = canBuyShopOffer(
+      { id: "student-1", money: 100 },
+      { price: 10, isActive: true, item: { isConsumable: true } },
+      { studentId: "student-1", quantity: 1 },
+    );
+
+    assert.equal(duplicateLaptop.ok, false);
+    assert.equal(secondCoffee.ok, true);
+  });
+
+  it("rejects an item state belonging to another student during purchase checks", () => {
+    const result = canBuyShopOffer(
+      { id: "student-1", money: 1000 },
+      { price: 100, isActive: true, item: { isConsumable: false } },
+      { studentId: "student-2", quantity: 1 },
     );
 
     assert.equal(result.ok, false);

@@ -16,8 +16,8 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  student Student?
-  sessions Session[]
+  student        Student?
+  sessions       Session[]
   adminAuditLogs AdminAuditLog[]
 
   @@index([role])
@@ -38,32 +38,34 @@ model Session {
 }
 
 model Student {
-  id             String   @id @default(cuid())
-  userId         String   @unique
-  studyProgramId String
-  displayName    String
-  level          Int      @default(1)
-  experience     Int      @default(0)
-  knowledge      Int      @default(10)
-  energy         Int      @default(100)
-  maximumEnergy  Int      @default(100)
-  lastEnergyUpdateAt DateTime @default(now())
-  stress         Int      @default(0)
-  reputation     Int      @default(0)
-  money          Int      @default(100)
-  semester       Int      @default(1)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  studyProgramId      String
+  displayName         String
+  level               Int      @default(1)
+  experience          Int      @default(0)
+  knowledge           Int      @default(10)
+  energy              Int      @default(100)
+  maximumEnergy       Int      @default(100)
+  lastEnergyUpdateAt  DateTime @default(now())
+  stress              Int      @default(0)
+  reputation          Int      @default(0)
+  money               Int      @default(100)
+  semester            Int      @default(1)
+  starterItemsGranted Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  studyProgram StudyProgram  @relation(fields: [studyProgramId], references: [id])
-  tasks        StudentTask[]
-  rewardLogs   StudentRewardLog[]
-  inventoryItems StudentInventoryItem[]
-  equippedItems  StudentEquipment[]
-  createdCommissions StudentCommission[] @relation("CommissionCreator")
-  acceptedCommissions StudentCommission[] @relation("CommissionContractor")
-  examAttempts StudentExamAttempt[]
+  user                User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  studyProgram        StudyProgram           @relation(fields: [studyProgramId], references: [id])
+  tasks               StudentTask[]
+  rewardLogs          StudentRewardLog[]
+  inventoryItems      StudentInventoryItem[]
+  equippedItems       StudentEquipment[]
+  itemLogs            StudentItemLog[]
+  createdCommissions  StudentCommission[]    @relation("CommissionCreator")
+  acceptedCommissions StudentCommission[]    @relation("CommissionContractor")
+  examAttempts        StudentExamAttempt[]
 
   @@index([studyProgramId])
   @@index([level])
@@ -102,36 +104,37 @@ model UniversityTask {
   updatedAt        DateTime @updatedAt
 
   studentTasks StudentTask[]
+  itemDrops    TaskItemDrop[]
 
   @@index([minimumLevel])
   @@index([isActive])
 }
 
 model StudentTask {
-  id               String            @id @default(cuid())
+  id               String    @id @default(cuid())
   studentId        String
   universityTaskId String
-  status           String            @default("in_progress")
+  status           String    @default("in_progress")
   activeSlot       String?
-  startedAt        DateTime          @default(now())
+  startedAt        DateTime  @default(now())
   finishesAt       DateTime
   completedAt      DateTime?
   experienceReward Int
   moneyReward      Int
   reputationReward Int
-  knowledgeReward  Int               @default(0)
-  stressChange     Int               @default(0)
+  knowledgeReward  Int       @default(0)
+  stressChange     Int       @default(0)
   energyCost       Int
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   student        Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
   universityTask UniversityTask @relation(fields: [universityTaskId], references: [id])
 
+  @@unique([studentId, activeSlot])
   @@index([studentId, status])
   @@index([status, studentId])
   @@index([universityTaskId])
-  @@unique([studentId, activeSlot])
 }
 
 model StudentRewardLog {
@@ -179,22 +182,73 @@ model ItemDefinition {
   updatedAt          DateTime @updatedAt
 
   inventoryItems StudentInventoryItem[]
+  taskDrops      TaskItemDrop[]
+  shopOffers     ShopOffer[]
+  itemLogs       StudentItemLog[]
 
   @@index([category])
   @@index([slot])
   @@index([isActive])
 }
 
-model StudentInventoryItem {
-  id           String   @id @default(cuid())
-  studentId    String
-  itemId       String
-  quantity     Int      @default(1)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+model TaskItemDrop {
+  id                    String   @id @default(cuid())
+  universityTaskId      String
+  itemId                String
+  dropChanceBasisPoints Int
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
-  student   Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  item      ItemDefinition @relation(fields: [itemId], references: [id])
+  universityTask UniversityTask @relation(fields: [universityTaskId], references: [id], onDelete: Cascade)
+  item           ItemDefinition @relation(fields: [itemId], references: [id])
+
+  @@unique([universityTaskId, itemId])
+  @@index([universityTaskId, isActive])
+  @@index([itemId])
+}
+
+model ShopOffer {
+  id        String   @id @default(cuid())
+  itemId    String
+  price     Int
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  item ItemDefinition @relation(fields: [itemId], references: [id])
+
+  @@unique([itemId])
+  @@index([isActive])
+}
+
+model StudentItemLog {
+  id        String   @id @default(cuid())
+  studentId String
+  itemId    String?
+  source    String
+  quantity  Int      @default(1)
+  message   String
+  createdAt DateTime @default(now())
+
+  student Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  item    ItemDefinition? @relation(fields: [itemId], references: [id], onDelete: SetNull)
+
+  @@index([studentId, createdAt])
+  @@index([source])
+  @@index([itemId])
+}
+
+model StudentInventoryItem {
+  id        String   @id @default(cuid())
+  studentId String
+  itemId    String
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student   Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  item      ItemDefinition    @relation(fields: [itemId], references: [id])
   equipment StudentEquipment?
 
   @@unique([studentId, itemId])
@@ -217,22 +271,22 @@ model StudentEquipment {
 }
 
 model StudentCommission {
-  id             String    @id @default(cuid())
-  creatorId      String
-  contractorId   String?
-  title          String
-  description    String
-  category       String
-  minimumLevel   Int
-  deadlineAt     DateTime
-  moneyReward    Int
-  status         String    @default("open")
-  acceptedAt     DateTime?
-  submittedAt    DateTime?
-  approvedAt     DateTime?
-  cancelledAt    DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id           String    @id @default(cuid())
+  creatorId    String
+  contractorId String?
+  title        String
+  description  String
+  category     String
+  minimumLevel Int
+  deadlineAt   DateTime
+  moneyReward  Int
+  status       String    @default("open")
+  acceptedAt   DateTime?
+  submittedAt  DateTime?
+  approvedAt   DateTime?
+  cancelledAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   creator    Student  @relation("CommissionCreator", fields: [creatorId], references: [id], onDelete: Cascade)
   contractor Student? @relation("CommissionContractor", fields: [contractorId], references: [id], onDelete: SetNull)
@@ -245,18 +299,18 @@ model StudentCommission {
 }
 
 model StudentExamAttempt {
-  id                  String   @id @default(cuid())
-  studentId           String
-  semester            Int
-  status              String
-  score               Int
-  requiredScore       Int
-  narrative           String
-  knowledgeAtAttempt  Int
-  levelAtAttempt      Int
-  stressAtAttempt     Int
+  id                   String    @id @default(cuid())
+  studentId            String
+  semester             Int
+  status               String
+  score                Int
+  requiredScore        Int
+  narrative            String
+  knowledgeAtAttempt   Int
+  levelAtAttempt       Int
+  stressAtAttempt      Int
   nextAttemptAllowedAt DateTime?
-  createdAt           DateTime @default(now())
+  createdAt            DateTime  @default(now())
 
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
