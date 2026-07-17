@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
+    "vercel-build": "prisma migrate deploy --schema prisma/postgres/schema.prisma && prisma generate --schema prisma/postgres/schema.prisma && node prisma/seed.mjs && next build",
     "start": "next start",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -13,6 +14,8 @@
     "test": "node --test --experimental-strip-types src/**/*.test.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:postgres:generate": "prisma generate --schema prisma/postgres/schema.prisma",
+    "prisma:postgres:migrate": "prisma migrate deploy --schema prisma/postgres/schema.prisma",
     "prisma:seed": "prisma db seed"
   },
   "dependencies": {

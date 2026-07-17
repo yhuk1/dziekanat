@@ -123,6 +123,31 @@ Plik bazy znajduje sie lokalnie w katalogu `prisma/` i nie jest commitowany do r
 
 `prisma.config.ts` laduje lokalny plik `.env`, wskazuje aktualna lokalizacje schematu i definiuje komende seedowania. Zmienna `DATABASE_URL` pozostaje pojedynczym miejscem ustawiania polaczenia z baza; lokalnie wskazuje SQLite, a przy pozniejszej migracji na PostgreSQL powinna wskazywac docelowy adres bazy.
 
+## Deploy na Vercel
+
+Projekt jest przygotowany do darmowego deploya na Vercel, ale produkcja powinna uzywac PostgreSQL. Lokalny plik SQLite (`file:./dev.db`) jest dobry na komputerze, lecz nie nadaje sie jako trwala baza dla aplikacji uruchomionej na Vercel.
+
+1. Wgraj repozytorium na GitHub.
+2. Wejdz na [vercel.com](https://vercel.com) i wybierz `Add New Project`.
+3. Zaimportuj repozytorium `yhuk1/dziekanat`.
+4. Dodaj baze PostgreSQL do projektu, np. Prisma Postgres z zakladki Storage/Marketplace Vercela. Integracja powinna ustawic zmienna `DATABASE_URL`.
+5. Zostaw build command z `vercel.json`: `npm run vercel-build`.
+6. Uruchom deploy.
+
+Dla Vercela uzywany jest osobny schemat Prismy:
+
+```text
+prisma/postgres/schema.prisma
+```
+
+oraz osobne migracje:
+
+```text
+prisma/postgres/migrations/
+```
+
+Lokalne komendy nadal uzywaja SQLite i pliku `prisma/schema.prisma`. Produkcyjny build Vercela uruchamia migracje PostgreSQL, generuje klienta Prisma, wykonuje seed i buduje Next.js.
+
 ## Konto administratora
 
 Panel administratora jest dostepny pod `/admin` tylko dla kont z rola `admin`.
